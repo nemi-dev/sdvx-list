@@ -1,0 +1,73 @@
+export async function load(): Promise<[[Track[], string[]], null] | [null, Error]> {
+  try {
+    const response = await fetch("./list.tsv");
+    const text = await response.text();
+    const rows_text = text.split("\n").map(row => row.split("\t"));
+    const header = rows_text.shift();
+    const tracks = rows_text.map(
+      ([title, artist, bpm, slow, nov, adv, exh, mxm, unov, uadv, uexh, umxm, from, at, etc]) => {
+        const islow = parseInt(slow)
+        return {
+          title,
+          artist,
+          bpm: parseInt(bpm),
+          slow: !isNaN(islow)? islow : null,
+          nov: parseInt(nov),
+          adv: parseInt(adv),
+          exh: parseInt(exh),
+          mxm: parseInt(mxm),
+          unov: unov.trim() || null,
+          uadv: uadv.trim() || null,
+          uexh: uexh.trim() || null,
+          umxm: umxm.trim() || null,
+          from: from.trim() || null,
+          at: at.trim() || null,
+          etc: etc.trim() || null
+        }
+      }
+    )
+    return [[tracks as Track[], header], null];
+  } catch (e) {
+    return [null, e];
+  }
+}
+
+export async function loadCaptions(): Promise<[C[], null] | [null, Error]> {
+  try {
+    const response = await fetch("./captions.tsv");
+    const text = await response.text();
+    const rows_text = text.split("\n").map(row => row.split("\t"));
+    const header = rows_text.shift();
+    rows_text.forEach((a) => {
+      header.forEach((key, i) => a[key] = a[i]);
+    });
+    return [rows_text as C[], null];
+  } catch (e) {
+    return [null, e];
+  }
+}
+
+function same<T>(v: T[]) {
+  const b = v.filter(a => a != null)
+  if (b.length === 0) return undefined;
+  const h = b[0]
+  if (b.every(i => i === h)) return h
+  return '*mixed*'
+}
+
+export function unlockString({ unov , uadv , uexh , umxm } : Track) {
+  if (!!umxm && unov === uadv && uadv === uexh && uexh === umxm) return umxm
+  return same([unov, uadv, uexh, umxm])
+}
+
+export function isLevelOf(levels: number[], { nov, adv, exh, mxm }: Track) {
+  return levels.some(level => [nov, adv, exh, mxm].includes(level))
+}
+
+export const unlockMap = {
+  pcb: 'PCB',
+  blas: 'BLASTER GATE',
+  hexa: 'HEXA DIVER',
+  tama: 'TAMA네코 어드벤처',
+  kona: '코나스테 연동'
+}

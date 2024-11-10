@@ -1,0 +1,3 @@
+interface Ctx {
+  lvFilter: number[]
+}
