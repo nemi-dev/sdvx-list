@@ -55,7 +55,7 @@ function same<T>(v: T[]) {
   return '*mixed*'
 }
 
-export function unlockString({ unov , uadv , uexh , umxm } : Track) {
+export function getUnlockKey({ unov , uadv , uexh , umxm } : Track) {
   if (!!umxm && unov === uadv && uadv === uexh && uexh === umxm) return umxm
   return same([unov, uadv, uexh, umxm])
 }
@@ -70,4 +70,22 @@ export const unlockMap = {
   hexa: 'HEXA DIVER',
   tama: 'TAMA네코 어드벤처',
   kona: '코나스테 연동'
+}
+
+export function compareLevel(a: Track, b: Track) {
+  let d = 0
+  if (d = a.mxm - b.mxm) return -d
+  if (d = a.exh - b.exh) return -d
+  if (d = a.adv - b.adv) return -d
+  return - a.nov + b.nov
+}
+
+export function compareTitle(a: Track, b: Track) {
+  const titleA = a.title.toLocaleLowerCase()
+  const titleB = b.title.toLocaleLowerCase()
+  return titleA > titleB? 1 : titleA < titleB? -1 : 0
+}
+
+export function negate<T>(comparer: (a:T, b:T) => number) {
+  return (a: T, b: T) => -comparer(a, b)
 }

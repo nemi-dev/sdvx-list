@@ -1,8 +1,17 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { AppContext } from './context'
-import { isLevelOf, load, loadCaptions, unlockMap, unlockString } from './data'
+import { compareLevel, compareTitle, isLevelOf, load, loadCaptions, negate, unlockMap, getUnlockKey } from './data'
 import { YouTubeSearchLink } from './YouTubeLink'
+import { Lock, Unlock } from 'react-feather'
+
+function focus(el: Element) {
+  el.scrollIntoView({
+    behavior: "smooth", // or "auto" for instant scrolling
+    block: "center",
+    inline: "center"
+  })
+}
 
 function TitleGroup({ title, artist }: { title: number | string, artist: number | string }) {
   return <div className='TitleGroup'>
@@ -22,9 +31,8 @@ interface LevelProps {
   className?: string
 }
 
-function Level({ value, unlock, className = '' }: LevelProps) {
+function Level({ value, className = '' }: LevelProps) {
   const classes = ['Level', className];
-  if (unlock) classes.push('Unlock', 'Unlock-' + unlock.toString().toUpperCase());
   const { lvFilter } = useContext(AppContext);
   const match = lvFilter.includes(value) || lvFilter.length == 0
   if (match) classes.push('Match')
@@ -46,29 +54,38 @@ function TrackEntry({ akey, value }: { akey: string, value: string | number | nu
   </div> : null;
 }
 
+function UnlockIcon({ track }: { track: Track }) {
+  const unlockKey = getUnlockKey(track)
+  if (unlockKey == undefined) return <span className='Unlock'></span>
+  if (unlockKey === 'pcb') return <span className='Unlock Unlock-PCB'></span>
+  const className = 'Unlock Unlock-'+unlockKey.toUpperCase()
+  return <span className={className}></span>
+}
+
 function Track({ track }: { track: Track }) {
-  const [open, setOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
+  const { selected, setSelected } = useContext(AppContext)
+  const open = track === selected
   const { title, artist, bpm, slow, nov, adv, exh, mxm, unov, uadv, uexh, umxm, from, at, etc } = track;
   const ref = useRef<HTMLDivElement>(null)
   const onClick: React.MouseEventHandler<HTMLElement> = (e) => {
-    setOpen(!open)
-    if (!open) {
-      new Promise(() =>
-      (ref.current).scrollIntoView({
-        behavior: "smooth", // or "auto" for instant scrolling
-        block: "center",
-        inline: "center"
-      })
-      )
+    // setOpen(!open)
+    if (open) {
+      setSelected(null)
+    } else {
+      setSelected(track)
+      new Promise(() =>focus(ref.current))
     }
+    
   }
   const search = title.length > 10? title : `${artist} ${title}`
   const className = open? "Song Open" : "Song"
-  const unlockKey = unlockString(track)
+  const unlockKey = getUnlockKey(track)
   const unlockText = unlockKey in unlockMap? unlockMap[unlockKey] : unlockKey
   return (
     <div className={className} ref={ref}>
       <div className="Head" onClick={onClick}>
+        <UnlockIcon track={track} />
         <TitleGroup title={title} artist={artist} />
         <BPM value={bpm} slow={slow} />
         <div className="Levels">
@@ -81,13 +98,13 @@ function Track({ track }: { track: Track }) {
       {open? 
       <div className='Body'>
         <div>
-          <YouTubeSearchLink search={search} />
+          <YouTubeSearchLink search={search}>Search on YouTube</YouTubeSearchLink>
         </div>
         <div className="Entries">
           <TrackEntry akey='Artist' value={artist} />
           <TrackEntry akey='BPM' value={bpm} />
           <TrackEntry akey='Unlock' value={unlockText} />
-          <TrackEntry akey='In' value={from} />
+          <TrackEntry akey='From' value={from} />
           <TrackEntry akey='Update' value={at} />
           <TrackEntry akey='Etc' value={etc} />
         </div>
@@ -97,6 +114,22 @@ function Track({ track }: { track: Track }) {
       }
     </div>
   )
+}
+
+function SortSelect({ akey }: { akey: string }) {
+  const { sortBy, setSortBy, useReverse, setUseReverse } = useContext(AppContext);
+  const classes = ['Sorter']
+  if (sortBy === akey) classes.push('Selected')
+  if (useReverse) classes.push('Reversed')
+  const label = useMemo(() => akey[0].toUpperCase() + akey.slice(1).toLowerCase(), [akey])
+  const onClick = useCallback(() => {
+    if (sortBy === akey) setUseReverse(!useReverse)
+    else {
+      setSortBy(akey)
+      setUseReverse(false)
+    }
+  }, [akey, sortBy, useReverse])
+  return <span className={classes.join(' ')} onClick={onClick}>{label}</span>
 }
 
 function toggleValue(array: number[], v: number) {
@@ -115,9 +148,11 @@ function App() {
   const [tracksLoaded, setTracksLoaded] = useState(false);
   const [tracks, setSongs] = useState<Track[]>(null)
   const [captions, setCaptions] = useState<C[]>(null)
+  const [selected, setSelected] = useState<Track>(null)
   const [lvFilter, setLvFilter] = useState<number[]>([])
   const [titlef, setTitlef] = useState('')
-  const [sortBy, setSortBy] = useState('default')
+  const [sortBy, setSortBy] = useState('update')
+  const [useReverse, setUseReverse] = useState(false)
   const filteredList = useMemo(() => {
     if (tracks === null) return []
     let tl = Array.from(tracks)
@@ -127,13 +162,19 @@ function App() {
     if (titlef.trim()) {
       tl = tl.filter(t => t.title.toLowerCase().includes(titlef.trim().toLowerCase()))
     }
+    switch (sortBy) {
+      case 'update': default:
+        if (useReverse) tl.reverse()
+        break;
+      case 'title':
+        tl.sort(useReverse? negate(compareTitle) : compareTitle)
+        break;
+      case 'level':
+        tl.sort(useReverse? negate(compareLevel) : compareLevel)
+        break;
+    }
     return tl
-    // if (filter) {
-    //   return tracks.filter(filter)
-    // } else {
-    //   return tracks
-    // }
-  }, [lvFilter, tracksLoaded, titlef])
+  }, [lvFilter, tracksLoaded, titlef, sortBy, useReverse])
 
   const onTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setTitlef(e.target.value)
@@ -151,18 +192,18 @@ function App() {
   }, [])
 
   return (
-    <AppContext.Provider value={{ lvFilter }}>
+    <AppContext.Provider value={{ lvFilter, sortBy, setSortBy, useReverse, setUseReverse, selected, setSelected }}>
       
       <header></header>
       <div id="ScrollRoot">
-        <div className="Gradient" />
+        {/* <div className="Gradient" /> */}
         <main>{filteredList?.map(track => <Track key={track.title} track={track} />)}</main>
       </div>
       <nav>
         <div className='NavGroup'>
           <h3>Level</h3>
           <div className='LevelSelectGroup'>
-            {[14, 15, 16, 17, 18, 19, 20].map(i => 
+            {[15, 16, 17, 18, 19, 20].map(i => 
               <LevelSelect key={i} value={i} selected={lvFilter.includes(i)} onClick={() => setLvFilter(toggleValue(lvFilter, i))} />
             )}
           </div>
@@ -172,7 +213,12 @@ function App() {
           <input className='TitleFilter' type="text" onChange={onTitleChange} value={titlef} />
         </div>
         <div className='NavGroup'>
-          <h3>Sort By</h3>
+          <h3>Sort</h3>
+          <div className="LevelSelectGroup">
+            <SortSelect akey='update' />
+            <SortSelect akey='title' />
+            <SortSelect akey='level' />
+          </div>
         </div>
       </nav>
     </AppContext.Provider>
