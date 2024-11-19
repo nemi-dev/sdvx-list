@@ -3,7 +3,6 @@ import './App.css'
 import { AppContext } from './context'
 import { compareLevel, compareTitle, isLevelOf, load, loadCaptions, negate, unlockMap, getUnlockKey } from './data'
 import { YouTubeSearchLink } from './YouTubeLink'
-import { Lock, Unlock } from 'react-feather'
 
 function focus(el: Element) {
   el.scrollIntoView({

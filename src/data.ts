@@ -1,6 +1,6 @@
 export async function load(): Promise<[[Track[], string[]], null] | [null, Error]> {
   try {
-    const response = await fetch("./list.tsv");
+    const response = await fetch("/sdvx/list.tsv");
     const text = await response.text();
     const rows_text = text.split("\n").map(row => row.split("\t"));
     const header = rows_text.shift();
@@ -34,7 +34,7 @@ export async function load(): Promise<[[Track[], string[]], null] | [null, Error
 
 export async function loadCaptions(): Promise<[C[], null] | [null, Error]> {
   try {
-    const response = await fetch("./captions.tsv");
+    const response = await fetch("/sdvx/captions.tsv");
     const text = await response.text();
     const rows_text = text.split("\n").map(row => row.split("\t"));
     const header = rows_text.shift();
