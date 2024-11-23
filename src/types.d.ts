@@ -4,6 +4,6 @@ interface Ctx {
   setSortBy: (s: string) => unknown
   useReverse: boolean
   setUseReverse: (b: boolean) => unknown
-  selected: Track
-  setSelected: (t: Track) => unknown
+  selected: SD
+  setSelected: (t: SD) => unknown
 }

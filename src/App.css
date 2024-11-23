@@ -114,7 +114,7 @@ main {
   min-height: 60px;
 }
 
-.TrackEntry {
+.SongEntry {
   font-size: 95%;
   display: flex;
   align-items: center;
@@ -232,10 +232,18 @@ main {
   box-sizing: border-box;
 }
 
+.LinkGroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .YTLink {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-basis: 10px;
+  flex-grow: 1;
   gap: 8px;
   padding: 8px;
   stroke-width: 1px;
@@ -279,11 +287,22 @@ main {
   ;
 }
 
-.TrackEntry.Artist { grid-area: artist; }
-.TrackEntry.BPM { grid-area: bpm; }
-.TrackEntry.Update { grid-area: update; }
-.TrackEntry.From { grid-area: from; }
-.TrackEntry.Etc { grid-area: etc; }
+.SongEntry.Artist { grid-area: artist; }
+.SongEntry.BPM { grid-area: bpm; }
+.SongEntry.Update { grid-area: update; }
+.SongEntry.From { grid-area: from; }
+.SongEntry.Etc { grid-area: etc; }
+
+.JacketGroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  > img {
+    max-width: 25%;
+    flex: 20px 1 1;
+  }
+}
 
 
 nav {

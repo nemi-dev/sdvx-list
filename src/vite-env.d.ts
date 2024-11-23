@@ -1,7 +1,9 @@
 /// <reference types="vite/client" />
 
 
-interface Track {
+interface SD {
+  ino?: string
+  no?: number
   title: string
   artist: string
   bpm: number

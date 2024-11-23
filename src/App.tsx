@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { AppContext } from './context'
-import { compareLevel, compareTitle, isLevelOf, load, loadCaptions, negate, unlockMap, getUnlockKey } from './data'
+import { compareLevel, compareTitle, isLevelOf, load, loadCaptions, negate, unlockMap, getUnlockKey, compareUpdate } from './data'
 import { YouTubeSearchLink } from './YouTubeLink'
 
 function focus(el: Element) {
@@ -46,14 +46,14 @@ function LevelSelect({ value, selected, onClick }: { value: number, selected: bo
   return <span className={classes.join(' ')} onClick={onClick}>{value}</span>
 }
 
-function TrackEntry({ akey, value }: { akey: string, value: string | number | null }) {
-  return !!value ? <div className={"TrackEntry " + akey}>
+function SongEntry({ akey, value }: { akey: string, value: string | number | null }) {
+  return !!value ? <div className={"SongEntry " + akey}>
     <span className="Key">{akey}</span>
     <span className="Value">{value}</span>
   </div> : null;
 }
 
-function UnlockIcon({ track }: { track: Track }) {
+function UnlockIcon({ track }: { track: SD }) {
   const unlockKey = getUnlockKey(track)
   if (unlockKey == undefined) return <span className='Unlock'></span>
   if (unlockKey === 'pcb') return <span className='Unlock Unlock-PCB'></span>
@@ -61,30 +61,32 @@ function UnlockIcon({ track }: { track: Track }) {
   return <span className={className}></span>
 }
 
-function Track({ track }: { track: Track }) {
+function SongC({ song }: { song: SD }) {
   // const [open, setOpen] = useState(false);
   const { selected, setSelected } = useContext(AppContext)
-  const open = track === selected
-  const { title, artist, bpm, slow, nov, adv, exh, mxm, unov, uadv, uexh, umxm, from, at, etc } = track;
+  const open = song === selected
+  const { title, artist, bpm, slow, nov, adv, exh, mxm, unov, uadv, uexh, umxm, from, at, etc } = song;
   const ref = useRef<HTMLDivElement>(null)
   const onClick: React.MouseEventHandler<HTMLElement> = (e) => {
     // setOpen(!open)
     if (open) {
       setSelected(null)
     } else {
-      setSelected(track)
+      setSelected(song)
       new Promise(() =>focus(ref.current))
     }
     
   }
-  const search = title.length > 10? title : `${artist} ${title}`
+  const titleTampered = title.replace(/-:/g, '')
+  const search = titleTampered.length > 10? titleTampered : `${artist} ${titleTampered}`
+  const searchSdvx = `${titleTampered} sdvx`
   const className = open? "Song Open" : "Song"
-  const unlockKey = getUnlockKey(track)
+  const unlockKey = getUnlockKey(song)
   const unlockText = unlockKey in unlockMap? unlockMap[unlockKey] : unlockKey
   return (
     <div className={className} ref={ref}>
       <div className="Head" onClick={onClick}>
-        <UnlockIcon track={track} />
+        <UnlockIcon track={song} />
         <TitleGroup title={title} artist={artist} />
         <BPM value={bpm} slow={slow} />
         <div className="Levels">
@@ -96,16 +98,23 @@ function Track({ track }: { track: Track }) {
       </div>
       {open? 
       <div className='Body'>
-        <div>
-          <YouTubeSearchLink search={search}>Search on YouTube</YouTubeSearchLink>
+        <div className='JacketGroup'>
+          <img src={`/sdvx/img/${song.ino}-inov.jpg`} />
+          <img src={`/sdvx/img/${song.ino}-iadv.jpg`} />
+          <img src={`/sdvx/img/${song.ino}-iexh.jpg`} />
+          <img src={`/sdvx/img/${song.ino}-imxm.jpg`} />
+        </div>
+        <div className='LinkGroup'>
+          <YouTubeSearchLink search={search}>title</YouTubeSearchLink>
+          <YouTubeSearchLink search={searchSdvx}>"sdvx"</YouTubeSearchLink>
         </div>
         <div className="Entries">
-          <TrackEntry akey='Artist' value={artist} />
-          <TrackEntry akey='BPM' value={bpm} />
-          <TrackEntry akey='Unlock' value={unlockText} />
-          <TrackEntry akey='From' value={from} />
-          <TrackEntry akey='Update' value={at} />
-          <TrackEntry akey='Etc' value={etc} />
+          <SongEntry akey='Artist' value={artist} />
+          <SongEntry akey='BPM' value={bpm} />
+          <SongEntry akey='Unlock' value={unlockText} />
+          <SongEntry akey='From' value={from} />
+          <SongEntry akey='Update' value={at} />
+          <SongEntry akey='Etc' value={etc} />
         </div>
       </div>
       :
@@ -145,9 +154,9 @@ function toggleValue(array: number[], v: number) {
 
 function App() {
   const [tracksLoaded, setTracksLoaded] = useState(false);
-  const [tracks, setSongs] = useState<Track[]>(null)
+  const [tracks, setSongs] = useState<SD[]>(null)
   const [captions, setCaptions] = useState<C[]>(null)
-  const [selected, setSelected] = useState<Track>(null)
+  const [selected, setSelected] = useState<SD>(null)
   const [lvFilter, setLvFilter] = useState<number[]>([])
   const [titlef, setTitlef] = useState('')
   const [sortBy, setSortBy] = useState('update')
@@ -195,8 +204,7 @@ function App() {
       
       <header></header>
       <div id="ScrollRoot">
-        {/* <div className="Gradient" /> */}
-        <main>{filteredList?.map(track => <Track key={track.title} track={track} />)}</main>
+        <main>{filteredList?.map(track => <SongC key={track.title} song={track} />)}</main>
       </div>
       <nav>
         <div className='NavGroup'>

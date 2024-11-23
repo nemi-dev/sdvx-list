@@ -1,13 +1,15 @@
-export async function load(): Promise<[[Track[], string[]], null] | [null, Error]> {
+export async function load(): Promise<[[SD[], string[]], null] | [null, Error]> {
   try {
     const response = await fetch("/sdvx/list.tsv");
     const text = await response.text();
-    const rows_text = text.split("\n").map(row => row.split("\t"));
+    const rows_text = text.split("\n").filter(t => !!t.trim()).map(row => row.split("\t"));
     const header = rows_text.shift();
     const tracks = rows_text.map(
-      ([title, artist, bpm, slow, nov, adv, exh, mxm, unov, uadv, uexh, umxm, from, at, etc]) => {
+      ([ino, no, title, artist, bpm, slow, nov, adv, exh, mxm, unov, uadv, uexh, umxm, from, at, etc]) => {
         const islow = parseInt(slow)
         return {
+          ino,
+          no : parseInt(no),
           title,
           artist,
           bpm: parseInt(bpm),
@@ -26,7 +28,7 @@ export async function load(): Promise<[[Track[], string[]], null] | [null, Error
         }
       }
     )
-    return [[tracks as Track[], header], null];
+    return [[tracks as SD[], header], null];
   } catch (e) {
     return [null, e];
   }
@@ -55,12 +57,12 @@ function same<T>(v: T[]) {
   return '*mixed*'
 }
 
-export function getUnlockKey({ unov , uadv , uexh , umxm } : Track) {
+export function getUnlockKey({ unov , uadv , uexh , umxm } : SD) {
   if (!!umxm && unov === uadv && uadv === uexh && uexh === umxm) return umxm
   return same([unov, uadv, uexh, umxm])
 }
 
-export function isLevelOf(levels: number[], { nov, adv, exh, mxm }: Track) {
+export function isLevelOf(levels: number[], { nov, adv, exh, mxm }: SD) {
   return levels.some(level => [nov, adv, exh, mxm].includes(level))
 }
 
@@ -72,7 +74,11 @@ export const unlockMap = {
   kona: '코나스테 연동'
 }
 
-export function compareLevel(a: Track, b: Track) {
+export function compareUpdate(a: SD, b: SD) {
+  return a.no - b.no
+}
+
+export function compareLevel(a: SD, b: SD) {
   let d = 0
   if (d = a.mxm - b.mxm) return -d
   if (d = a.exh - b.exh) return -d
@@ -80,7 +86,7 @@ export function compareLevel(a: Track, b: Track) {
   return - a.nov + b.nov
 }
 
-export function compareTitle(a: Track, b: Track) {
+export function compareTitle(a: SD, b: SD) {
   const titleA = a.title.toLocaleLowerCase()
   const titleB = b.title.toLocaleLowerCase()
   return titleA > titleB? 1 : titleA < titleB? -1 : 0
