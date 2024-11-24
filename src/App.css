@@ -1,11 +1,6 @@
-/* #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  /* text-align: center; */
-/* }  */
 :root {
-  --nav_height: 5svh;
+  --nav_height: 8.5svh;
+  interpolate-size: allow-keywords;
 }
 
 #root {
@@ -15,7 +10,7 @@
 }
 
 #ScrollRoot {
-  max-height: calc(100svh - var(--nav_height));
+  max-height: calc(95svh - var(--nav_height));
   overflow-y: auto;
   position: relative;
   overflow-x: hidden;
@@ -55,7 +50,7 @@ main {
   animation-timing-function: cubic-bezier(0, 0, 0, 1);
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
-  width: 60vw;
+  /* width: 60vw; */
   max-width: 100vw;
   margin-inline: auto;
 }
@@ -100,12 +95,14 @@ main {
 
 @keyframes body_grow {
   from {
-    min-height: 10px;
-    max-height: 10px;
+    /* min-height: 10px; */
+    /* max-height: 10px; */
+    height: 0;
   }
   to {
-    min-height: 60px;
-    max-height: 60px;
+    /* min-height: 60px; */
+    /* max-height: 60px; */
+    height: auto;
   }
 }
 
@@ -114,13 +111,13 @@ main {
   min-height: 60px;
 }
 
-.SongEntry {
+.SongProps {
   font-size: 95%;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  font-family: "Kosugi Maru", sans-serif;
+  /* font-family: "Kosugi Maru", sans-serif; */
   & > .Key {
     font-size: 80%;
     opacity: 0.5;
@@ -129,32 +126,6 @@ main {
 
 
 
-@supports ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
-
-  @keyframes rolling {
-    0% {
-      transform: translate(0, 3em);
-    }
-    10%, 90% {
-      transform: translate(0);
-    }
-    100% {
-      transform: translate(0, -3em);
-    }
-  }
-
-  .Song {
-    animation: rolling forwards;
-    animation-timing-function: linear;
-    animation-fill-mode: none;
-    animation-iteration-count: 1;
-    animation-timeline: view(y);
-    animation-range: cover 0% cover 100%;
-    transform-origin: left center;
-  }
-
-}
-
 .TitleGroup {
   display: flex;
   flex-wrap: wrap;
@@ -162,11 +133,6 @@ main {
   flex-basis: 200px;
   flex-grow: 1;
   gap: 8px;
-}
-
-.Title, .Artist {
-  font-family: "Kosugi Maru", sans-serif;
-  /* margin-inline: 8px; */
 }
 
 .Title {
@@ -203,13 +169,18 @@ main {
 }
 
 .Level {
-  flex-basis: 23px;
+  font-size: 20px;
+  flex-basis: 20px;
   flex-grow: 1;
   flex-shrink: 1;
   text-align: center;
 }
 
-.Levels .Level:not(.Match) {
+.Level, .LevelSelect {
+  font-family: 'impact', sans-serif;
+}
+
+.UseLvFilter .Levels .Level:not(.Match) {
   opacity: 0.2;
 }
 
@@ -232,11 +203,28 @@ main {
   box-sizing: border-box;
 }
 
+.JacketGroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  > img {
+    /* max-width: 25%; */
+    width: auto;
+    max-height: min(22vw, 15svh);
+    /* flex: 20px 1 1; */
+  }
+}
+
+
+
 .LinkGroup {
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
+
 
 .YTLink {
   display: flex;
@@ -287,29 +275,21 @@ main {
   ;
 }
 
-.SongEntry.Artist { grid-area: artist; }
-.SongEntry.BPM { grid-area: bpm; }
-.SongEntry.Update { grid-area: update; }
-.SongEntry.From { grid-area: from; }
-.SongEntry.Etc { grid-area: etc; }
-
-.JacketGroup {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  > img {
-    max-width: 25%;
-    flex: 20px 1 1;
-  }
-}
+.SongProps.Artist { grid-area: artist; }
+.SongProps.BPM { grid-area: bpm; }
+.SongProps.Update { grid-area: update; }
+.SongProps.From { grid-area: from; }
+.SongProps.Etc { grid-area: etc; }
 
 
 nav {
   height: var(--nav_height);
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   z-index: 3;
+  background-color: black;
+  gap: 4px;
 
   & > * {
     flex-basis: 30vw;
@@ -323,13 +303,26 @@ nav {
   flex-direction: row;
   align-items: center;
   justify-content: space-evenly;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  & > * {
+    white-space: nowrap;
+  }
 }
+
+@media screen and (min-width: 768px) {
+  .NavGroup.Search {
+    width: 100vw;
+    flex-basis: 100vw;
+  }
+}
+
 .NavGroup > :nth-child(1) {
-  flex-grow: 1;
+  /* flex-grow: 1; */
 }
 
 .NavGroup > :nth-child(2) {
-  flex-grow: 3;
+  flex-grow: 1;
 }
 
 .LevelSelectGroup {
@@ -339,8 +332,15 @@ nav {
   justify-content: space-evenly;
 }
 
-.LevelSelect, .Sorter {
+.LevelSelect {
+  font-size: 24px;
+}
+
+.Sorter {
   font-size: 20px;
+}
+
+.LevelSelect, .Sorter {
   padding: 4px 12px;
   cursor: pointer;
 }
@@ -365,13 +365,16 @@ h1, h2, h3, h4, h5, h6 {
   padding-inline: 1rem;
 }
 
+h3 {
+  font-weight: bold!important;
+}
+
 @media screen and (max-width: 767px) {
   #root {
     font-size: 16px;
   }
   :root {
-    /* --nav_height: 10svh; */
-    --nav_height: 6rem;
+    --nav_height: 12svh;
   }
   .Song {
     padding: 2px;
@@ -383,9 +386,12 @@ h1, h2, h3, h4, h5, h6 {
     flex-basis: 60px;
   }
   .Level {
-    font-size: 12px;
+    font-size: 14px;
   }
-  .Level.NOV {
+  .Level.NOV:not(.Match) {
+    display: none;
+  }
+  .Level.ADV:not(.Match) {
     display: none;
   }
   .Song .Head .Artist {
@@ -393,5 +399,6 @@ h1, h2, h3, h4, h5, h6 {
   }
   nav {
     flex-direction: column;
+    flex-wrap: nowrap;
   }
 }

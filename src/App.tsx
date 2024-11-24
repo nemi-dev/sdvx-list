@@ -33,7 +33,7 @@ interface LevelProps {
 function Level({ value, className = '' }: LevelProps) {
   const classes = ['Level', className];
   const { lvFilter } = useContext(AppContext);
-  const match = lvFilter.includes(value) || lvFilter.length == 0
+  const match = lvFilter.includes(value)
   if (match) classes.push('Match')
   className = classes.join(' ')
   return <span className={className}>{value.toString().padStart(2, '0')}</span>
@@ -46,8 +46,8 @@ function LevelSelect({ value, selected, onClick }: { value: number, selected: bo
   return <span className={classes.join(' ')} onClick={onClick}>{value}</span>
 }
 
-function SongEntry({ akey, value }: { akey: string, value: string | number | null }) {
-  return !!value ? <div className={"SongEntry " + akey}>
+function SongProps({ akey, value }: { akey: string, value: string | number | null }) {
+  return !!value ? <div className={"SongProps " + akey}>
     <span className="Key">{akey}</span>
     <span className="Value">{value}</span>
   </div> : null;
@@ -90,7 +90,7 @@ function SongC({ song }: { song: SD }) {
         <TitleGroup title={title} artist={artist} />
         <BPM value={bpm} slow={slow} />
         <div className="Levels">
-          <Level className='NOV' value={nov} unlock={unov} />
+          {/* <Level className='NOV' value={nov} unlock={unov} /> */}
           <Level className='ADV' value={adv} unlock={uadv} />
           <Level className='EXH' value={exh} unlock={uexh} />
           <Level className='MXM' value={mxm} unlock={umxm} />
@@ -109,12 +109,12 @@ function SongC({ song }: { song: SD }) {
           <YouTubeSearchLink search={searchSdvx}>"sdvx"</YouTubeSearchLink>
         </div>
         <div className="Entries">
-          <SongEntry akey='Artist' value={artist} />
-          <SongEntry akey='BPM' value={bpm} />
-          <SongEntry akey='Unlock' value={unlockText} />
-          <SongEntry akey='From' value={from} />
-          <SongEntry akey='Update' value={at} />
-          <SongEntry akey='Etc' value={etc} />
+          <SongProps akey='Artist' value={artist} />
+          <SongProps akey='BPM' value={bpm} />
+          <SongProps akey='Unlock' value={unlockText} />
+          <SongProps akey='From' value={from} />
+          <SongProps akey='Update' value={at} />
+          <SongProps akey='Etc' value={etc} />
         </div>
       </div>
       :
@@ -124,12 +124,12 @@ function SongC({ song }: { song: SD }) {
   )
 }
 
-function SortSelect({ akey }: { akey: string }) {
+function SortSelect({ akey, label = akey }: { akey: string, label?: string }) {
   const { sortBy, setSortBy, useReverse, setUseReverse } = useContext(AppContext);
   const classes = ['Sorter']
   if (sortBy === akey) classes.push('Selected')
   if (useReverse) classes.push('Reversed')
-  const label = useMemo(() => akey[0].toUpperCase() + akey.slice(1).toLowerCase(), [akey])
+  // const label = useMemo(() => akey[0].toUpperCase() + label, [akey])
   const onClick = useCallback(() => {
     if (sortBy === akey) setUseReverse(!useReverse)
     else {
@@ -204,28 +204,28 @@ function App() {
       
       <header></header>
       <div id="ScrollRoot">
-        <main>{filteredList?.map(track => <SongC key={track.title} song={track} />)}</main>
+        <main className={lvFilter.length > 0 ? 'UseLvFilter' : null}>{filteredList?.map(track => <SongC key={track.title} song={track} />)}</main>
       </div>
       <nav>
         <div className='NavGroup'>
-          <h3>Level</h3>
+          <h3>레벨</h3>
           <div className='LevelSelectGroup'>
             {[15, 16, 17, 18, 19, 20].map(i => 
               <LevelSelect key={i} value={i} selected={lvFilter.includes(i)} onClick={() => setLvFilter(toggleValue(lvFilter, i))} />
             )}
           </div>
         </div>
-        <div className="NavGroup">
-          <h3>Title</h3>
-          <input className='TitleFilter' type="text" onChange={onTitleChange} value={titlef} />
-        </div>
         <div className='NavGroup'>
-          <h3>Sort</h3>
+          <h3>정렬</h3>
           <div className="LevelSelectGroup">
-            <SortSelect akey='update' />
-            <SortSelect akey='title' />
-            <SortSelect akey='level' />
+            <SortSelect akey='update' label='업데이트' />
+            <SortSelect akey='title' label='곡명' />
+            <SortSelect akey='level' label='레벨' />
           </div>
+        </div>
+        <div className="NavGroup Search">
+          <h3>곡명 검색</h3>
+          <input className='TitleFilter' type="text" onChange={onTitleChange} value={titlef} />
         </div>
       </nav>
     </AppContext.Provider>
