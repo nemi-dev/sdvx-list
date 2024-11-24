@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { AppContext } from './context'
-import { compareLevel, compareTitle, isLevelOf, load, loadCaptions, negate, unlockMap, getUnlockKey, compareUpdate } from './data'
+import { compareLevel, compareTitle, isLevelOf, load, loadCaptions, negate, unlockMap, compareUpdate } from './data'
 import { YouTubeSearchLink } from './YouTubeLink'
 
 function focus(el: Element) {
@@ -26,7 +26,6 @@ function BPM({ value, slow }: { value: number | string, slow: number | string })
 
 interface LevelProps {
   value: number
-  unlock: string
   className?: string
 }
 
@@ -39,6 +38,16 @@ function Level({ value, className = '' }: LevelProps) {
   return <span className={className}>{value.toString().padStart(2, '0')}</span>
 }
 
+function JacketGroup({ ino, iuse }: { ino: string, iuse: string }) {
+  const iuseArray = iuse?.split(',')
+  const classList = ['JacketGroup']
+  if (iuseArray?.length > 1) classList.push('UseVary')
+  return (
+    <div className={classList.join(' ')}>
+      {iuseArray?.map(i => <img key={i} src={`/sdvx/img/${ino}-${i}.jpg`} />)}
+    </div>
+  )
+}
 
 function LevelSelect({ value, selected, onClick }: { value: number, selected: boolean, onClick?: React.MouseEventHandler }) {
   const classes = ['LevelSelect']
@@ -46,15 +55,15 @@ function LevelSelect({ value, selected, onClick }: { value: number, selected: bo
   return <span className={classes.join(' ')} onClick={onClick}>{value}</span>
 }
 
-function SongProps({ akey, value }: { akey: string, value: string | number | null }) {
-  return !!value ? <div className={"SongProps " + akey}>
+function SongProp({ akey, value }: { akey: string, value: string | number | null }) {
+  return !!value ? <div className={"SongProp " + akey}>
     <span className="Key">{akey}</span>
     <span className="Value">{value}</span>
   </div> : null;
 }
 
-function UnlockIcon({ track }: { track: SD }) {
-  const unlockKey = getUnlockKey(track)
+function UnlockIcon({ song }: { song: SD }) {
+  const unlockKey = song.unlock
   if (unlockKey == undefined) return <span className='Unlock'></span>
   if (unlockKey === 'pcb') return <span className='Unlock Unlock-PCB'></span>
   const className = 'Unlock Unlock-'+unlockKey.toUpperCase()
@@ -62,59 +71,51 @@ function UnlockIcon({ track }: { track: SD }) {
 }
 
 function SongC({ song }: { song: SD }) {
-  // const [open, setOpen] = useState(false);
   const { selected, setSelected } = useContext(AppContext)
   const open = song === selected
-  const { title, artist, bpm, slow, nov, adv, exh, mxm, unov, uadv, uexh, umxm, from, at, etc } = song;
+  const { title, artist, bpm, slow, nov, adv, exh, mxm, unlock, from, at, etc, ino, iuse } = song;
   const ref = useRef<HTMLDivElement>(null)
-  const onClick: React.MouseEventHandler<HTMLElement> = (e) => {
-    // setOpen(!open)
+  const onClick: React.MouseEventHandler<HTMLElement> =(e) => {
     if (open) {
       setSelected(null)
     } else {
       setSelected(song)
       new Promise(() =>focus(ref.current))
     }
-    
   }
   const titleTampered = title.replace(/-:/g, '')
   const search = titleTampered.length > 10? titleTampered : `${artist} ${titleTampered}`
   const searchSdvx = `${titleTampered} sdvx`
   const className = open? "Song Open" : "Song"
-  const unlockKey = getUnlockKey(song)
+  const unlockKey = song.unlock
   const unlockText = unlockKey in unlockMap? unlockMap[unlockKey] : unlockKey
   return (
     <div className={className} ref={ref}>
       <div className="Head" onClick={onClick}>
-        <UnlockIcon track={song} />
+        <UnlockIcon song={song} />
         <TitleGroup title={title} artist={artist} />
         <BPM value={bpm} slow={slow} />
         <div className="Levels">
-          {/* <Level className='NOV' value={nov} unlock={unov} /> */}
-          <Level className='ADV' value={adv} unlock={uadv} />
-          <Level className='EXH' value={exh} unlock={uexh} />
-          <Level className='MXM' value={mxm} unlock={umxm} />
+          <Level className='NOV' value={nov} />
+          <Level className='ADV' value={adv} />
+          <Level className='EXH' value={exh} />
+          <Level className='MXM' value={mxm} />
         </div>
       </div>
       {open? 
       <div className='Body'>
-        <div className='JacketGroup'>
-          <img src={`/sdvx/img/${song.ino}-inov.jpg`} />
-          <img src={`/sdvx/img/${song.ino}-iadv.jpg`} />
-          <img src={`/sdvx/img/${song.ino}-iexh.jpg`} />
-          <img src={`/sdvx/img/${song.ino}-imxm.jpg`} />
-        </div>
-        <div className='LinkGroup'>
-          <YouTubeSearchLink search={search}>title</YouTubeSearchLink>
-          <YouTubeSearchLink search={searchSdvx}>"sdvx"</YouTubeSearchLink>
-        </div>
-        <div className="Entries">
-          <SongProps akey='Artist' value={artist} />
-          <SongProps akey='BPM' value={bpm} />
-          <SongProps akey='Unlock' value={unlockText} />
-          <SongProps akey='From' value={from} />
-          <SongProps akey='Update' value={at} />
-          <SongProps akey='Etc' value={etc} />
+        <JacketGroup ino={ino} iuse={iuse} />
+        <div className="Details">
+          <div className='LinkGroup'>
+            <YouTubeSearchLink search={search}>"title"</YouTubeSearchLink>
+            <YouTubeSearchLink search={searchSdvx}>"title+sdvx"</YouTubeSearchLink>
+          </div>
+          <SongProp akey='Artist' value={artist} />
+          <SongProp akey='BPM' value={bpm} />
+          <SongProp akey='Unlock' value={unlockText} />
+          <SongProp akey='From' value={from} />
+          <SongProp akey='Update' value={at} />
+          <SongProp akey='Etc' value={etc} />
         </div>
       </div>
       :
@@ -204,7 +205,9 @@ function App() {
       
       <header></header>
       <div id="ScrollRoot">
-        <main className={lvFilter.length > 0 ? 'UseLvFilter' : null}>{filteredList?.map(track => <SongC key={track.title} song={track} />)}</main>
+        <main className={lvFilter.length > 0 ? 'UseLvFilter' : null}>
+          {filteredList?.map(track => <SongC key={track.title} song={track} />)}
+        </main>
       </div>
       <nav>
         <div className='NavGroup'>

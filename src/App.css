@@ -1,16 +1,16 @@
 :root {
-  --nav_height: 8.5svh;
+  --nav_height: 8.5dvh;
   interpolate-size: allow-keywords;
 }
 
 #root {
   /* margin: 8px; */
   font-size: 18px;
-  height: 100svh;;
+  height: 100dvh;;
 }
 
 #ScrollRoot {
-  max-height: calc(95svh - var(--nav_height));
+  max-height: calc(98dvh - var(--nav_height));
   overflow-y: auto;
   position: relative;
   overflow-x: hidden;
@@ -25,7 +25,7 @@
   left: 0;
   top: 0;
   right: 0;
-  height: calc(100svh + 1px  - var(--nav_height));
+  height: calc(100dvh + 1px  - var(--nav_height));
   
   background: linear-gradient(0deg, rgba(0,0,0,0) 90%, rgba(0,0,0,1) 100%),
   linear-gradient(180deg, rgba(0,0,0,0) 90%, rgba(0,0,0,1) 100%);
@@ -35,15 +35,15 @@
 
 @keyframes main_buildup {
   from {
-    padding-block: 100vh;
+    padding-block: 100dvh;
   }
   to {
-    padding-block: 45vh;
+    padding-block: 45dvh;
   }
 }
 
 main {
-  /* padding-block: 50svh; */
+  /* padding-block: 50dvh; */
   /* width: clamp(320px, 60vw, 1000px); */
   animation-name: main_buildup;
   animation-duration: 1s;
@@ -108,11 +108,13 @@ main {
 
 .Body {
   animation: body_grow 0.1s linear 1 ;
-  min-height: 60px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
-.SongProps {
-  font-size: 95%;
+.SongProp {
+  font-size: 90%;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -204,14 +206,22 @@ main {
 }
 
 .JacketGroup {
+  /* width: 100%; */
   display: flex;
+  /* display: grid;
+  grid-template-rows: repeat(2, auto);
+  grid-template-columns: repeat(2, auto); */
   align-items: center;
   justify-content: center;
 
-  > img {
+  &.UseVary {
+    flex-grow: 1;
+  }
+
+  & > img {
     /* max-width: 25%; */
     width: auto;
-    max-height: min(22vw, 15svh);
+    max-height: min(22vw, 15dvh);
     /* flex: 20px 1 1; */
   }
 }
@@ -230,7 +240,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-basis: 10px;
+  /* flex-basis: 10px; */
   flex-grow: 1;
   gap: 8px;
   padding: 8px;
@@ -266,20 +276,33 @@ main {
   background-color: rgb(255, 208, 0);
 }
 
-.Entries {
+.Details {
+  /* display: flex;
+  flex-direction: column; */
   display: grid;
   grid-template-areas: 
-  'artist artist bpm unlock'
-  'update update from from'
+  'link link link link'
+  'artist artist artist artist'
+  'bpm bpm unlock unlock'
+  'update update update update'
+  'from from from from'
   'etc etc etc etc'
   ;
+  grid-auto-columns: 1fr;
+
+  flex-grow: 1;
+  /* width: 100%; */
+
+  & > .LinkGroup {
+    grid-area: link;
+  }
 }
 
-.SongProps.Artist { grid-area: artist; }
-.SongProps.BPM { grid-area: bpm; }
-.SongProps.Update { grid-area: update; }
-.SongProps.From { grid-area: from; }
-.SongProps.Etc { grid-area: etc; }
+.SongProp.Artist { grid-area: artist; }
+.SongProp.BPM { grid-area: bpm; }
+.SongProp.Update { grid-area: update; }
+.SongProp.From { grid-area: from; }
+.SongProp.Etc { grid-area: etc; }
 
 
 nav {
@@ -374,7 +397,7 @@ h3 {
     font-size: 16px;
   }
   :root {
-    --nav_height: 12svh;
+    --nav_height: 12dvh;
   }
   .Song {
     padding: 2px;
@@ -400,5 +423,9 @@ h3 {
   nav {
     flex-direction: column;
     flex-wrap: nowrap;
+  }
+  .YTLink {
+    font-size: 14px;
+    padding: 2px;
   }
 }

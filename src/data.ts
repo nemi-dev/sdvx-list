@@ -1,11 +1,11 @@
 export async function load(): Promise<[[SD[], string[]], null] | [null, Error]> {
   try {
-    const response = await fetch("/sdvx/list.tsv");
+    const response = await fetch("/sdvx/slist.tsv");
     const text = await response.text();
     const rows_text = text.split("\n").filter(t => !!t.trim()).map(row => row.split("\t"));
     const header = rows_text.shift();
     const tracks = rows_text.map(
-      ([ino, no, title, artist, bpm, slow, nov, adv, exh, mxm, unov, uadv, uexh, umxm, from, at, etc]) => {
+      ([no, title, artist, bpm, slow, nov, adv, exh, mxm, unlock, ino, iuse, from, at, etc]) => {
         const islow = parseInt(slow)
         return {
           ino,
@@ -18,10 +18,8 @@ export async function load(): Promise<[[SD[], string[]], null] | [null, Error]> 
           adv: parseInt(adv),
           exh: parseInt(exh),
           mxm: parseInt(mxm),
-          unov: unov.trim() || null,
-          uadv: uadv.trim() || null,
-          uexh: uexh.trim() || null,
-          umxm: umxm.trim() || null,
+          iuse: iuse,
+          unlock: unlock.trim() || undefined,
           from: from.trim() || null,
           at: at.trim() || null,
           etc: etc.trim() || null
@@ -47,19 +45,6 @@ export async function loadCaptions(): Promise<[C[], null] | [null, Error]> {
   } catch (e) {
     return [null, e];
   }
-}
-
-function same<T>(v: T[]) {
-  const b = v.filter(a => a != null)
-  if (b.length === 0) return undefined;
-  const h = b[0]
-  if (b.every(i => i === h)) return h
-  return '*mixed*'
-}
-
-export function getUnlockKey({ unov , uadv , uexh , umxm } : SD) {
-  if (!!umxm && unov === uadv && uadv === uexh && uexh === umxm) return umxm
-  return same([unov, uadv, uexh, umxm])
 }
 
 export function isLevelOf(levels: number[], { nov, adv, exh, mxm }: SD) {
